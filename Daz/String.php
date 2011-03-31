@@ -12,6 +12,15 @@ class Daz_String {
 
     //----------------------------------------------------------------------
     /**
+     * Test whether a text string ends with a given string or not.
+     * http://www.jonasjohn.de/snippets/php/ends-with.htm
+     */
+    public static function endsWith($haystack, $needle) {
+        return strrpos($haystack, $needle) == strlen($haystack) - strlen($needle);
+    }
+
+    //----------------------------------------------------------------------
+    /**
      * Replace all occurrences of search tags in the search string with the
      * values from the replacement array.  We use a PHP 5.3 lambda function
      * which is called for each matched tag.
@@ -29,6 +38,15 @@ class Daz_String {
             // no match in replacement array, leave tag as-is
             return '[' . $tag . ']';
         }, $string);
+    }
+
+    //----------------------------------------------------------------------
+    /**
+     * Tests if a text string starts with a given string.
+     * http://www.jonasjohn.de/snippets/php/starts-with.htm
+     */
+    public static function startsWith($haystack, $needle) {
+        return strpos($haystack, $needle) === 0;
     }
 
     //----------------------------------------------------------------------
