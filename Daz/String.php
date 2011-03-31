@@ -26,7 +26,7 @@ class Daz_String {
      * which is called for each matched tag.
      */
     public static function merge($string, $replacements) {
-        return preg_replace('/\[([^\]]+)\]/', function ($match) use ($replacements) {
+        return preg_replace_callback('/\[([^\]]+)\]/', function ($match) use ($replacements) {
             // tag being replaced
             $tag = $match[1];
 
