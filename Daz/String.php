@@ -11,4 +11,25 @@ class Daz_String {
      */
 
     //----------------------------------------------------------------------
+    /**
+     * Replace all occurrences of search tags in the search string with the
+     * values from the replacement array.  We use a PHP 5.3 lambda function
+     * which is called for each matched tag.
+     */
+    public static function merge($string, $replacements) {
+        return preg_replace('/\[([^\]]+)\]/', function ($match) use ($replacements) {
+            // tag being replaced
+            $tag = $match[1];
+
+            // matched tag is in our replacement array, use it
+            if (isset ($replacements[$tag])) {
+                return $replacements[$tag];
+            }
+
+            // no match in replacement array, leave tag as-is
+            return '[' . $tag . ']';
+        }, $string);
+    }
+
+    //----------------------------------------------------------------------
 }
