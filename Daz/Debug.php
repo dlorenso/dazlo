@@ -11,4 +11,20 @@ class Daz_Debug {
      */
 
     //----------------------------------------------------------------------
+    public static function dump($data) {
+        // choose dump format (html or cli)
+        $is_cli = defined('STDIN') && isset ($_SERVER['argc']);
+
+        // HTML mode
+        if (!$is_cli) {
+            print '<pre>' . htmlspecialchars(print_r($data, true)) . '</pre>';
+            return;
+        }
+
+        // CLI mode
+        print_r($data);
+        print "\n";
+    }
+
+    //----------------------------------------------------------------------
 }
