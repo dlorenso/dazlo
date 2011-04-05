@@ -20,22 +20,91 @@ class Daz_Tag extends XMLWriter {
 
     //----------------------------------------------------------------------
     public function __construct() {
+        // open the XMLWriter memory to begin collecting the XML output
+        $this->openMemory();
+
+        // turn on indentation for easy readability
+        $this->setIndentString('  ');
+        $this->setIndent(true);
+
+        // the remainder of this constructor acts exactly like the  "push" method
+        call_user_func_array(array (
+            $this,
+            'push'
+        ), func_get_args());
     }
 
     //----------------------------------------------------------------------
     public function __toString() {
+        // make sure all elements have been ended by processing remaining stack
+        while ($this->count_elements > 0) {
+            $this->pop();
+        }
+
+        // serialize the XML and return as a string
+        return $this->outputMemory();
     }
 
     //----------------------------------------------------------------------
+    /**
+     * Parameters are dynamic and represent an arbitrary number of key/value
+     * pairs.  If an odd number of arguments are supplied, the last argument is
+     * a boolean flag which determines if any of the arguments should be used.
+     */
     public function attr() {
+        // we can be called with dynamic number of arguments
+        $args = func_get_args();
+
+        // boolean flag is present!
+        if (count($args) % 2) {
+            // do nothing if the boolean fails
+            if (!(boolean) array_pop($args)) {
+                // enable chaining
+                return $this;
+            }
+        }
+
+        // add the attributes to our element
+        for ($i = 0; $i < count($args); $i += 2) {
+            $this->writeAttribute($args[$i], $args[$i +1]);
+        }
+
+        // enable chaining
+        return $this;
     }
 
     //----------------------------------------------------------------------
+    /**
+     * Performs a 'push' and 'pop' operation in a single step for convenience.
+     */
     public function append() {
+        // push element
+        call_user_func_array(array (
+            $this,
+            'push'
+        ), func_get_args());
+
+        // pop element
+        $this->pop();
+
+        // enable chaining
+        return $this;
     }
 
     //----------------------------------------------------------------------
-    public function pop() {
+    /**
+     * Ends the given number of "tag" nodes and reduces the stack counter as we
+     * move our way back down the stack.
+     */
+    public function pop($count = 1) {
+        for ($i = 0; $i < $count; $i++) {
+            // end the "tag" element
+            $this->endElement();
+            $this->count_elements--; // decrement tag count
+        }
+
+        // enable chaining
+        return $this;
     }
 
     //----------------------------------------------------------------------
@@ -57,7 +126,7 @@ class Daz_Tag extends XMLWriter {
 
         // start a new "tag" element
         $this->startElement($tagName);
-        $this->count_elements++;
+        $this->count_elements++; // increment tag count
 
         // if there are arguments remaining, they are key/value attribute pairs
         for ($i = 0; $i < count($args); $i += 2) {
