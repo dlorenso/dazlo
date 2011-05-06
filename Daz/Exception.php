@@ -1,5 +1,5 @@
 <?php
-class Daz_Exception {
+class Daz_Exception extends Exception {
     /**
      * Dazlo Framework
      * Copyright (c) 2011 D. Dante Lorenso.  All Rights Reserved.
