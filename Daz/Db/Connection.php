@@ -65,7 +65,8 @@ abstract class Daz_Db_Connection {
         }
 
         // TODO: write a nice backtrace error message to write to the screen
-        $trace = ''; // ...debug_backtrace();
+        $trace = debug_backtrace();
+        Daz_Debug :: dump($trace);
         trigger_error('DB ERROR: ' . $error_message . PHP_EOL . $trace, E_USER_NOTICE);
         return false;
     }
@@ -102,7 +103,7 @@ abstract class Daz_Db_Connection {
         // Dazlo Framework authors prefer lowercase and exception errors
         $pdo->setAttribute(PDO :: ATTR_CASE, PDO :: CASE_LOWER);
         $pdo->setAttribute(PDO :: ATTR_ERRMODE, PDO :: ERRMODE_EXCEPTION);
-        static :: $CONN = $pdo;
+        return static :: $CONN = $pdo;
     }
 
     //----------------------------------------------------------------------
@@ -115,6 +116,11 @@ abstract class Daz_Db_Connection {
         $pdo = self :: getConnection();
 
         try {
+            // we don't have a valid database connection
+            if (!$pdo) {
+                throw new Daz_Exception('Invalid PDO Database Connection!');
+            }
+
             // execute pdo statement
             $sth = $stmt->execute($pdo);
 
@@ -133,7 +139,7 @@ abstract class Daz_Db_Connection {
      * DELETE: Execute the given query and return the number of rows affected.
      */
     public static function queryDelete(Daz_Db_Statement $stmt) {
-        return $this->queryAffectedRows($stmt);
+        return self :: queryAffectedRows($stmt);
     }
 
     //----------------------------------------------------------------------
@@ -165,7 +171,7 @@ abstract class Daz_Db_Connection {
      * UPDATE: Execute the given query and return the number of rows affected.
      */
     public static function queryUpdate(Daz_Db_Statement $stmt) {
-        return $this->queryAffectedRows($stmt);
+        return self :: queryAffectedRows($stmt);
     }
 
     //----------------------------------------------------------------------
