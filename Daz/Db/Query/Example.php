@@ -5,7 +5,6 @@ class Daz_Db_Query_Example extends Daz_Db_Connection_Example {
         $SQL = self :: statement();
         $SQL->sql('INSERT INTO photo (year, month, day, path)');
         $SQL->sql('VALUES (?, ?, ?, ?)')->setInt($year)->setInt($month)->setInt($day)->set($path);
-        $SQL->dump();
 
         // run
         return self :: queryInsert($SQL);

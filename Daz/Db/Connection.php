@@ -65,8 +65,8 @@ abstract class Daz_Db_Connection {
         }
 
         // TODO: write a nice backtrace error message to write to the screen
-        $trace = debug_backtrace();
-        Daz_Debug :: dump($trace);
+        $trace = ''; // debug_backtrace();
+        // Daz_Debug :: dump($trace);
         trigger_error('DB ERROR: ' . $error_message . PHP_EOL . $trace, E_USER_NOTICE);
         return false;
     }
@@ -275,7 +275,7 @@ abstract class Daz_Db_Connection {
      */
     public static function selectValue(Daz_Db_Statement $stmt, $column, $default = false) {
         // select the first row of data
-        $row = $this->selectRow($stmt);
+        $row = self :: selectRow($stmt);
 
         // from the first row, read the value of the selected column, or use default
         return isset ($row[$column]) ? $row[$column] : $default;
