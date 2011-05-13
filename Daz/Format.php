@@ -11,4 +11,20 @@ class Daz_Format {
      */
 
     //----------------------------------------------------------------------
+    /**
+     * Modified from http://kohanaframework.org/3.0/guide/api/Text
+     */
+    public static function bytes($bytes, $force_unit = null) {
+        // eclipse wraps arrays and I don't want to have them wrap, so I'll push the units on
+        $units = array ();
+        array_push($units, 'B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+
+        // select proper units
+        $power = ($bytes > 0) ? floor(log($bytes, 1000)) : 0;
+
+        // format number and return
+        return sprintf('%01.2f %s', $bytes / pow(1000, $power), $units[$power]);
+    }
+
+    //----------------------------------------------------------------------
 }
