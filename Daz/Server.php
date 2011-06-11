@@ -11,4 +11,14 @@ class Daz_Server {
      */
 
     //----------------------------------------------------------------------
+    public static function get($key, $default = null) {
+        return empty ($_SERVER[$key]) ? $default : $_SERVER[$key];
+    }
+
+    //----------------------------------------------------------------------
+    public static function set($key, $value) {
+        $_SERVER[$key] = $value;
+    }
+
+    //----------------------------------------------------------------------
 }
