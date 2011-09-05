@@ -55,6 +55,11 @@ abstract class Daz_Db_Connection {
     }
 
     //----------------------------------------------------------------------
+    protected static function connectionInit() {
+        return static :: $CONN;
+    }
+
+    //----------------------------------------------------------------------
     protected static function fail($error_message) {
         // write error message to error log
         error_log('DB ERROR:' . $error_message);
@@ -124,11 +129,6 @@ abstract class Daz_Db_Connection {
         // initialize and return connection
         static :: $CONN = $pdo;
         return static :: connectionInit();
-    }
-
-    //----------------------------------------------------------------------
-    protected static function connectionInit() {
-        return static :: $CONN;
     }
 
     //----------------------------------------------------------------------
