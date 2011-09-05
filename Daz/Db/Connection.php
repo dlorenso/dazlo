@@ -59,15 +59,32 @@ abstract class Daz_Db_Connection {
         // write error message to error log
         error_log('DB ERROR:' . $error_message);
 
+        // extract a backtrace and write it line-by-line to the error log
+        $trace = debug_backtrace();
+        foreach ($trace as $i => $bt) {
+            if (is_null($bt)) {
+                continue;
+            }
+
+            // defaults
+            $bt['file'] = empty ($bt['file']) ? '<no file>' : $bt['file'];
+            $bt['line'] = empty ($bt['line']) ? '<no line>' : $bt['line'];
+            $bt['class'] = empty ($bt['class']) ? '' : $bt['class'];
+            $bt['type'] = empty ($bt['type']) ? '' : $bt['type'];
+            $bt['function'] = empty ($bt['function']) ? '<no function>' : $bt['function'];
+
+            // text error
+            $msg = sprintf('[%d] %s:%d called %s%s%s', $i, $bt['file'], $bt['line'], $bt['class'], $bt['type'], $bt['function']);
+            error_log($msg);
+        }
+
         // if errors are not displayed to screen, stop here
         if (!ini_get('display_errors')) {
             return false;
         }
 
-        // TODO: write a nice backtrace error message to write to the screen
-        $trace = ''; // debug_backtrace();
-        // Daz_Debug :: dump($trace);
-        trigger_error('DB ERROR: ' . $error_message . PHP_EOL . $trace, E_USER_NOTICE);
+        // trigger a user-level notice
+        trigger_error('DB ERROR: ' . $error_message . PHP_EOL, E_USER_NOTICE);
         return false;
     }
 
@@ -103,7 +120,15 @@ abstract class Daz_Db_Connection {
         // Dazlo Framework authors prefer lowercase and exception errors
         $pdo->setAttribute(PDO :: ATTR_CASE, PDO :: CASE_LOWER);
         $pdo->setAttribute(PDO :: ATTR_ERRMODE, PDO :: ERRMODE_EXCEPTION);
-        return static :: $CONN = $pdo;
+
+        // initialize and return connection
+        static :: $CONN = $pdo;
+        return static :: connectionInit();
+    }
+
+    //----------------------------------------------------------------------
+    protected static function connectionInit() {
+        return static :: $CONN;
     }
 
     //----------------------------------------------------------------------
@@ -230,6 +255,52 @@ abstract class Daz_Db_Connection {
                 else {
                     $data[$row[$index_column]] = $row[$value_column];
                 }
+            }
+
+            // success!
+            return $data;
+        }
+
+        // catch error execption and fail
+        catch (Exception $ex) {
+            return self :: fail($ex->getMessage());
+        }
+    }
+
+    //----------------------------------------------------------------------
+    /**
+     * Select data as a multi-level nested array.  Parameters are the columns to
+     * use as keys in the returned array.  Multiple keys accepted.
+     */
+    public static function selectNested(Daz_Db_Statement $stmt) {
+        // get database connection
+        $pdo = self :: getConnection();
+
+        // start with empty return data
+        $data = array ();
+
+        // indexes
+        $args = func_get_args();
+        array_shift($args);
+
+        try {
+            // execute pdo statement
+            $sth = $stmt->execute($pdo);
+
+            // loop through all results as associative array
+            while ($row = $sth->fetch(PDO :: FETCH_ASSOC)) {
+                $node = & $data;
+                foreach ($args as $arg) {
+                    $key = $row[$arg];
+                    if (!isset ($node[$key])) {
+                        $node[$key] = array ();
+                    }
+                    // move to the new node
+                    $node = & $node[$key];
+                }
+
+                // save the row
+                $node = $row;
             }
 
             // success!
