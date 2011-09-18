@@ -28,10 +28,12 @@ class Daz_Tag extends XMLWriter {
         $this->setIndent(true);
 
         // the remainder of this constructor acts exactly like the  "push" method
-        call_user_func_array(array (
-            $this,
-            'push'
-        ), func_get_args());
+        if (func_num_args() > 0) {
+            call_user_func_array(array (
+                $this,
+                'push'
+            ), func_get_args());
+        }
     }
 
     //----------------------------------------------------------------------
