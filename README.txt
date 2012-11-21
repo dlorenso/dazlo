@@ -17,14 +17,14 @@ Composer here:
 Simply add the 'require' entry to your composer.json file and
 install.
 
-         "require" : {
-                 "php" : ">=5.3.3",
-                 "dlorenso/dazlo" : "*",
-                 "zendframework/zendframework" : "2.*"
-         }
+    "require" : {
+        "php" : ">=5.3.3",
+        "dazlo/dazlo": "dev-master"
+        "zendframework/zendframework" : "2.*"
+    }
 
-$php composer.phar install
-$php composer.phar update
+  > php composer.phar install
+  > php composer.phar update
 
 QUESTIONS AND FEEDBACK
 ----------------------
