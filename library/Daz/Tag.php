@@ -1,10 +1,9 @@
 <?php
 /**
- * Dazlo Framework
- * Copyright (c) 2011 D. Dante Lorenso.  All Rights Reserved.
- * This source file is subject to the new BSD license that is bundled
- * with this package in the file LICENSE.txt.  It is also available
- * through the world-wide web at this URL:
+ * Dazlo Framework Copyright (c) 2012 D. Dante Lorenso.  All Rights Reserved.
+ * This source file is subject to the new BSD license that is bundled with
+ * this package in the file LICENSE.txt.  It is also available through the
+ * world-wide web at this URL:
  * http://www.opensource.org/licenses/bsd-license.php
  */
 namespace Daz;
@@ -133,7 +132,7 @@ class Tag extends \XMLWriter
         // text may exist if we have an even number of arguments
         $text = (count($args) % 2) ? array_pop($args) : null;
 
-        // start a new "tag" element
+        // start a "tag" element
         $this->startElement($tagName);
         $this->count_elements++; // increment tag count
 
