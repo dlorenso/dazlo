@@ -10,6 +10,7 @@ namespace Daz;
 
 use Daz\Debug;
 use Daz\String;
+use Daz\Exception;
 
 class Config
 {
@@ -18,9 +19,9 @@ class Config
     private static $custom = null;
 
     // config files will be loaded in the following order
-    const CONFIG_FILE_SERVER = '[priv_dir]/config/server.ini';
-    const CONFIG_FILE_ENV = '[priv_dir]/config/[env].ini';
-    const CONFIG_FILE_CUSTOM = '[priv_dir]/config/[custom].ini';
+    const CONFIG_FILE_SERVER = '[config_dir]/server.ini';
+    const CONFIG_FILE_ENV = '[config_dir]/[env].ini';
+    const CONFIG_FILE_CUSTOM = '[config_dir][custom].ini';
 
     // config data storage
     private static $CONFIGS = array();
@@ -147,41 +148,31 @@ class Config
     }
 
     /**
-     * Set the basic Dazlo constants as well as the "env" and "custom" flags
-     * to identify which config files to load up. After defining these, go ahead
-     * and load the configs since it's pretty certain we will be needing them.
+     * We pass in the basic Dazlo constants as options.  The options MUST contain the
+     * "env" and "custom" flags to identify which config files to load up. After defining
+     * these, go ahead and load the configs since it's pretty certain we will be needing them.
      */
-    public static function init($env, $custom)
+    public static function init($options)
     {
         // sanity check
-        if (!$env || !$custom) {
-            throw new Daz\Exception('Invalid config file initialization parameters!');
+        if (!isset($options['env']) || !isset($options['custom'])) {
+            throw new \Daz\Exception('Invalid config file initialization parameters!');
         }
 
-        // init with hard constants
-        $data = array(
-            'env' => $env,
-            'custom' => $custom,
-            'docroot' => DOCROOT,
-            'app_dir' => APP_DIR,
-            'priv_dir' => PRIV_DIR,
-            'root_dir' => ROOT_DIR
-        );
-
         // start with the basics (might be used by macros)
-        self :: $CONFIGS = $data;
+        self :: $CONFIGS = $options;
 
         // import the SERVER config settings
-        self :: importConfig(String :: merge(self :: CONFIG_FILE_SERVER, $data));
+        self :: importConfig(String :: merge(self :: CONFIG_FILE_SERVER, $options));
 
         // import the ENV config settings
-        self :: importConfig(String :: merge(self :: CONFIG_FILE_ENV, $data));
+        self :: importConfig(String :: merge(self :: CONFIG_FILE_ENV, $options));
 
         // import the CUSTOM config settings
-        self :: importConfig(String :: merge(self :: CONFIG_FILE_CUSTOM, $data));
+        self :: importConfig(String :: merge(self :: CONFIG_FILE_CUSTOM, $options));
 
         // don't let our "core" values be overridden ... put them back in again
-        self :: $CONFIGS = array_merge(self :: $CONFIGS, $data);
+        self :: $CONFIGS = array_merge(self :: $CONFIGS, $options);
 
         // do macro replacements
         self :: replaceMacros();
