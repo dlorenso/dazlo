@@ -8,37 +8,24 @@
  */
 namespace Daz;
 
-use Daz\Debug;
 use Daz\String;
 use Daz\Exception;
 
 class Config
 {
-    // config file flags
-    private static $env = null;
-    private static $custom = null;
-
-    // config files will be loaded in the following order
-    const CONFIG_FILE_SERVER = '[config_dir]/server.ini';
-    const CONFIG_FILE_ENV = '[config_dir]/[env].ini';
-    const CONFIG_FILE_CUSTOM = '[config_dir][custom].ini';
-
     // config data storage
     private static $CONFIGS = array();
 
-    /**
-     * Having this function strays from our loose coupling policy, but we allow
-     * it because this function should only be called when testing code and
-     * it'll be commented out before going live, usually.
-     */
-    public static function dump()
-    {
-        Debug :: dump(print_r(self :: $CONFIGS, true));
-    }
+    // load configuration files in this order
+    private static $configuration_files = array(
+        '[config_dir]/server.php',
+        '[config_dir]/[env].php',
+        '[config_dir]/[custom].php'
+    );
 
     public static function get($key, $default = '')
     {
-        return isset (self :: $CONFIGS[$key]) ? self :: $CONFIGS[$key] : $default;
+        return isset (self::$CONFIGS[$key]) ? self::$CONFIGS[$key] : $default;
     }
 
     /**
@@ -46,7 +33,7 @@ class Config
      */
     public static function getBool($key, $default = false)
     {
-        $v = strtolower(self :: get($key, $default));
+        $v = strtolower(self::get($key, $default));
 
         // we can only test scalar values
         if (!is_scalar($v)) {
@@ -68,12 +55,21 @@ class Config
     }
 
     /**
+     * Rather than implement a "dump" function, we will allow ability to get all loaded configs.  The end user
+     * can later dump these manually.
+     */
+    public static function getConfigs()
+    {
+        return self::$CONFIGS;
+    }
+
+    /**
      * Look up the config value then case it as an integer.  This is just
      * shorthand for handling integer-expectant config values.
      */
     public static function getInt($key, $default = '')
     {
-        return intval(self :: get($key, $default));
+        return intval(self::get($key, $default));
     }
 
     /**
@@ -86,7 +82,7 @@ class Config
     {
         // search all configs
         $data = array();
-        foreach (self :: $CONFIGS as $key => $value) {
+        foreach (self::$CONFIGS as $key => $value) {
             // this is not our prefix, skip it
             if (strpos($key, $prefix) !== 0) {
                 continue;
@@ -113,15 +109,15 @@ class Config
      * the INI file and flatten the keys as lowercase words separated by a
      * single underscore character.
      */
-    private static function importConfig($ini_file)
+    private static function importConfiguration($file_name)
     {
         // nothing to do if the file does not exist
-        if (!file_exists($ini_file)) {
+        if (!file_exists($file_name)) {
             return false;
         }
 
         // php loads INI files for us with it's built-in functions (use sections)
-        $configs = (array) parse_ini_file($ini_file, true);
+        $configs = include $file_name;
 
         // flatten nested arrays with lowercase and underscored naming convention
         $data = array();
@@ -143,7 +139,7 @@ class Config
         }
 
         // merge the imported config data into our class configs
-        self :: $CONFIGS = array_merge(self :: $CONFIGS, $data);
+        self::$CONFIGS = array_merge(self::$CONFIGS, $data);
         return true;
     }
 
@@ -154,28 +150,34 @@ class Config
      */
     public static function init($options)
     {
-        // sanity check
-        if (!isset($options['env']) || !isset($options['custom'])) {
-            throw new \Daz\Exception('Invalid config file initialization parameters!');
+        // required option
+        if (!isset($options['env'])) {
+            throw new Exception('Configuration file initialization parameter "env" missing!');
+        }
+
+        // required option
+        if (!isset($options['custom'])) {
+            throw new Exception('Configuration file initialization parameter "custom" missing!');
+        }
+
+        // required option
+        if (!isset($options['config_dir'])) {
+            throw new Exception('Configuration file initialization parameter "config_dir" missing!');
         }
 
         // start with the basics (might be used by macros)
-        self :: $CONFIGS = $options;
+        self::$CONFIGS = $options;
 
-        // import the SERVER config settings
-        self :: importConfig(String :: merge(self :: CONFIG_FILE_SERVER, $options));
-
-        // import the ENV config settings
-        self :: importConfig(String :: merge(self :: CONFIG_FILE_ENV, $options));
-
-        // import the CUSTOM config settings
-        self :: importConfig(String :: merge(self :: CONFIG_FILE_CUSTOM, $options));
+        // loop through all configuration files and load settings
+        foreach (self::$configuration_files as $config_file) {
+            self::importConfiguration(String::merge($config_file, $options));
+        }
 
         // don't let our "core" values be overridden ... put them back in again
-        self :: $CONFIGS = array_merge(self :: $CONFIGS, $options);
+        self::$CONFIGS = array_merge(self::$CONFIGS, $options);
 
         // do macro replacements
-        self :: replaceMacros();
+        self::replaceMacros();
     }
 
     /**
@@ -185,7 +187,7 @@ class Config
      */
     public static function isDev()
     {
-        return self :: getBool('general.is_dev');
+        return self::getBool('general.is_dev');
     }
 
     /**
@@ -196,7 +198,7 @@ class Config
     private static function replaceMacros($loop_count = 0)
     {
         // copy the class configs locally
-        $configs = self :: $CONFIGS;
+        $configs = self::$CONFIGS;
         $again = false;
 
         // loop through configs looking for macros, replace them if found
@@ -226,11 +228,11 @@ class Config
         }
 
         // update class configs with processed values
-        self :: $CONFIGS = $configs;
+        self::$CONFIGS = $configs;
 
         // replace macros again (recursive macros)
         if ($again) {
-            self :: replaceMacros($loop_count + 1);
+            self::replaceMacros($loop_count + 1);
         }
     }
 
